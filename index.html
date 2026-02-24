@@ -16,14 +16,37 @@ let totalSteps=15;
 let moveAmount;
 let isHardQuestion=false;
 
+let questionTimer;
+let questionTimeLimit=20000; // 20 seconds
+
+/* CREATE VISIBLE CASES */
+function createCases(){
+    let path=document.getElementById("path");
+    let width=path.offsetWidth;
+
+    for(let i=0;i<totalSteps;i++){
+        let box=document.createElement("div");
+        box.style.position="absolute";
+        box.style.width="30px";
+        box.style.height="20px";
+        box.style.border="2px solid white";
+        box.style.borderRadius="6px";
+        box.style.left=(width/totalSteps)*i+"px";
+        box.style.top="-7px";
+        path.appendChild(box);
+    }
+}
+
 /* Generate Question Automatically */
 function generateQuestion(){
+
+    clearTimeout(questionTimer); // reset timer
 
     let hardChance=Math.random();
     let questionText="";
 
-    if(hardChance < 0.3){  
-        // 30% HARD question
+    if(hardChance < 0.3){
+        // HARD question (2 cases)
         isHardQuestion=true;
 
         let a=Math.floor(Math.random()*9)+1;
@@ -32,10 +55,10 @@ function generateQuestion(){
 
         currentAnswer=a+b+c;
         questionText=a+" + "+b+" + "+c+" = ?";
-        moveAmount=2; // worth 2 cases
+        moveAmount=2;
 
     } else {
-        // EASY question
+        // EASY question (1 case)
         isHardQuestion=false;
 
         let operations=["+","-","×"];
@@ -57,17 +80,25 @@ function generateQuestion(){
         }
 
         questionText=a+" "+op+" "+b+" = ?";
-        moveAmount=1; // worth 1 case
+        moveAmount=1;
     }
 
     document.getElementById("question").innerText=
         "Player "+currentPlayer+" : "+questionText;
 
     document.getElementById("answer").value="";
+
+    // START 20 SECOND TIMER
+    questionTimer=setTimeout(()=>{
+        switchPlayer();
+        generateQuestion();
+    }, questionTimeLimit);
 }
 
 /* Submit */
 function submitAnswer(){
+
+    clearTimeout(questionTimer); // stop timer when answered
 
     let userAnswer=parseInt(document.getElementById("answer").value);
     let message=document.getElementById("message");
@@ -110,6 +141,9 @@ function moveRocket(id,steps){
     document.getElementById(id).style.left=start+distance+"px";
 }
 
-/* Start game automatically */
-generateQuestion();
+/* Start game */
+window.onload=function(){
+    createCases();
+    generateQuestion();
+};
 </script>
