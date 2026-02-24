@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Mission Mathoria</title>
+<style>
+body{
+    font-family: Arial, sans-serif;
+    text-align:center;
+    background: linear-gradient(to bottom, #001f3f, #000814);
+    color:white;
+}
+
+h1{margin-top:10px;}
+
+#board{
+    display:flex;
+    justify-content:center;
+    margin:20px;
+}
+
+.case{
+    width:45px;
+    height:45px;
+    border:2px solid white;
+    margin:3px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+.start{background:#444;}
+.finish{background:gold; color:black;}
+
+.special{
+    background:#3a0ca3;
+}
+
+#rockets{
+    font-size:30px;
+    margin:10px;
+}
+
+button{
+    padding:10px 20px;
+    font-size:18px;
+    margin:5px;
+    cursor:pointer;
+}
+
+input{
+    font-size:18px;
+    padding:5px;
+    width:80px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🚀 Mission Mathoria 🌍</h1>
+
+<div id="board"></div>
+
+<div id="rockets">
+    🔴 Fusée Rouge: <span id="rpos">0</span> |
+    🔵 Fusée Bleue: <span id="bpos">0</span>
+</div>
+
+<h2 id="question">Clique pour commencer</h2>
+
+<input type="number" id="answer">
+<button onclick="check()">Valider</button>
+<br><br>
+
+<button onclick="generate('easy')">🟢 Question Facile</button>
+<button onclick="generate('hard')">🔵 Question Difficile</button>
+<button onclick="alien()">👽 Alien Challenge</button>
+
+<script>
+let rpos = 0;
+let bpos = 0;
+let currentTeam = "red";
+let currentAnswer = 0;
+
+const totalCases = 15;
+const specials = [5, 9, 12]; // cases spéciales
+
+const board = document.getElementById("board");
+
+for(let i=0;i<=totalCases;i++){
+    let div = document.createElement("div");
+    div.classList.add("case");
+    if(i==0){ div.classList.add("start"); div.innerHTML="🚀"; }
+    if(i==totalCases){ div.classList.add("finish"); div.innerHTML="🌍"; }
+    if(specials.includes(i)){ div.classList.add("special"); div.innerHTML="🌠"; }
+    board.appendChild(div);
+}
+
+function generate(type){
+    let q="";
+    if(type=="easy"){
+        let a = Math.floor(Math.random()*9)+1;
+        let b = Math.floor(Math.random()*9);
+        if(Math.random()>0.5){
+            q = a+" + "+b;
+            currentAnswer = a+b;
+        } else {
+            q = a+" - "+b;
+            currentAnswer = a-b;
+        }
+    }
+
+    if(type=="hard"){
+        let a = Math.floor(Math.random()*5)+1;
+        let b = Math.floor(Math.random()*5)+1;
+        q = a+" × "+b;
+        currentAnswer = a*b;
+    }
+
+    document.getElementById("question").innerHTML = 
+        (currentTeam=="red"?"🔴":"🔵") + " " + q;
+}
+
+function check(){
+    let val = parseInt(document.getElementById("answer").value);
+    if(val === currentAnswer){
+        if(currentTeam=="red") rpos +=2;
+        else bpos +=2;
+        alert("Bonne réponse ! 🚀");
+    } else {
+        if(currentTeam=="red") rpos -=1;
+        else bpos -=1;
+        alert("Oups ! Mauvaise réponse 😅");
+    }
+
+    if(rpos<0) rpos=0;
+    if(bpos<0) bpos=0;
+
+    update();
+
+    if(rpos>=totalCases){
+        alert("🔴 Équipe Rouge gagne !");
+        location.reload();
+    }
+    if(bpos>=totalCases){
+        alert("🔵 Équipe Bleue gagne !");
+        location.reload();
+    }
+
+    currentTeam = currentTeam=="red"?"blue":"red";
+    document.getElementById("answer").value="";
+}
+
+function alien(){
+    let choice = confirm("Équipe adverse : OK = difficile, Annuler = facile");
+    if(choice) generate("hard");
+    else generate("easy");
+}
+
+function update(){
+    document.getElementById("rpos").innerText = rpos;
+    document.getElementById("bpos").innerText = bpos;
+}
+</script>
+
+</body>
+  </html>
