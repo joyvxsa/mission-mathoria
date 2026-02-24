@@ -1,149 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mission Mathoria</title>
+
+<style>
+body{
+margin:0;
+font-family:Comic Sans MS;
+text-align:center;
+background:linear-gradient(#020024,#090979,#000);
+color:white;
+overflow:hidden;
+}
+
+h1{
+margin-top:10px;
+}
+
+#timer{
+font-size:28px;
+margin:10px;
+}
+
+#question{
+font-size:40px;
+margin:20px;
+}
+
+#message{
+position:absolute;
+top:40%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:90px;
+font-weight:bold;
+display:none;
+}
+
+#path{
+position:absolute;
+bottom:120px;
+left:50%;
+transform:translateX(-50%);
+display:flex;
+gap:5px;
+}
+
+.step{
+width:40px;
+height:40px;
+border:2px solid white;
+border-radius:8px;
+}
+
+#earth{
+position:absolute;
+bottom:60px;
+left:10%;
+font-size:60px;
+}
+
+#moon{
+position:absolute;
+top:50px;
+right:10%;
+font-size:90px;
+}
+
+.rocket{
+position:absolute;
+bottom:125px;
+font-size:40px;
+transition:1s;
+}
+
+#rocket1{ left:10%; }
+#rocket2{ left:10%; transform:translateY(-50px); }
+
+input{
+font-size:30px;
+text-align:center;
+width:120px;
+}
+
+button{
+font-size:20px;
+margin-left:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🚀 Mission Mathoria 🚀</h1>
+
+<div id="timer">⏳ 20</div>
+<div id="question"></div>
+
+<input type="number" id="answer">
+<button onclick="checkAnswer()">OK</button>
+
+<div id="message"></div>
+
+<div id="earth">🌍</div>
+<div id="moon">🌕</div>
+
+<div id="path"></div>
+
+<div id="rocket1" class="rocket">🚀</div>
+<div id="rocket2" class="rocket">🚀</div>
+
 <script>
-/* Stars */
-for(let i=0;i<100;i++){
-    let star=document.createElement("div");
-    star.className="star";
-    star.style.top=Math.random()*100+"%";
-    star.style.left=Math.random()*100+"%";
-    document.body.appendChild(star);
+let steps = 15;
+let currentPlayer = 1;
+let pos1 = 0;
+let pos2 = 0;
+let answerValue = 0;
+let timer;
+let timeLeft = 20;
+
+const path = document.getElementById("path");
+for(let i=0;i<steps;i++){
+let box=document.createElement("div");
+box.className="step";
+path.appendChild(box);
 }
 
-let currentAnswer=0;
-let currentPlayer=1;
-let steps1=0;
-let steps2=0;
-let totalSteps=15;
-let moveAmount;
-let isHardQuestion=false;
-
-let questionTimer;
-let questionTimeLimit=20000; // 20 seconds
-
-/* CREATE VISIBLE CASES */
-function createCases(){
-    let path=document.getElementById("path");
-    let width=path.offsetWidth;
-
-    for(let i=0;i<totalSteps;i++){
-        let box=document.createElement("div");
-        box.style.position="absolute";
-        box.style.width="30px";
-        box.style.height="20px";
-        box.style.border="2px solid white";
-        box.style.borderRadius="6px";
-        box.style.left=(width/totalSteps)*i+"px";
-        box.style.top="-7px";
-        path.appendChild(box);
-    }
+function startTimer(){
+timeLeft=20;
+document.getElementById("timer").innerText="⏳ "+timeLeft;
+timer=setInterval(()=>{
+timeLeft--;
+document.getElementById("timer").innerText="⏳ "+timeLeft;
+if(timeLeft<=0){
+clearInterval(timer);
+showMessage("OOPS","red");
+}
+},1000);
 }
 
-/* Generate Question Automatically */
 function generateQuestion(){
+let easy = Math.random()<0.7;
 
-    clearTimeout(questionTimer); // reset timer
-
-    let hardChance=Math.random();
-    let questionText="";
-
-    if(hardChance < 0.3){
-        // HARD question (2 cases)
-        isHardQuestion=true;
-
-        let a=Math.floor(Math.random()*9)+1;
-        let b=Math.floor(Math.random()*9)+1;
-        let c=Math.floor(Math.random()*9)+1;
-
-        currentAnswer=a+b+c;
-        questionText=a+" + "+b+" + "+c+" = ?";
-        moveAmount=2;
-
-    } else {
-        // EASY question (1 case)
-        isHardQuestion=false;
-
-        let operations=["+","-","×"];
-        let op=operations[Math.floor(Math.random()*3)];
-        let a=Math.floor(Math.random()*9)+1;
-        let b=Math.floor(Math.random()*5)+1;
-
-        if(op==="+"){
-            currentAnswer=a+b;
-        }
-        if(op==="-"){
-            if(a<b){ [a,b]=[b,a]; }
-            currentAnswer=a-b;
-        }
-        if(op==="×"){
-            a=Math.floor(Math.random()*5)+1;
-            b=Math.floor(Math.random()*5)+1;
-            currentAnswer=a*b;
-        }
-
-        questionText=a+" "+op+" "+b+" = ?";
-        moveAmount=1;
-    }
-
-    document.getElementById("question").innerText=
-        "Player "+currentPlayer+" : "+questionText;
-
-    document.getElementById("answer").value="";
-
-    // START 20 SECOND TIMER
-    questionTimer=setTimeout(()=>{
-        switchPlayer();
-        generateQuestion();
-    }, questionTimeLimit);
+if(easy){
+let a = Math.floor(Math.random()*9)+1;
+let b = Math.floor(Math.random()*9)+1;
+let op = ["+","-","×"][Math.floor(Math.random()*3)];
+if(op==="×"){ b=Math.floor(Math.random()*5)+1; }
+answerValue = eval(op==="×"? a*b : op==="+"? a+b : a-b);
+document.getElementById("question").innerText=a+" "+op+" "+b;
+}else{
+let a=Math.floor(Math.random()*9)+1;
+let b=Math.floor(Math.random()*9)+1;
+let c=Math.floor(Math.random()*9)+1;
+answerValue=a+b+c;
+document.getElementById("question").innerText=a+" + "+b+" + "+c;
+}
+startTimer();
 }
 
-/* Submit */
-function submitAnswer(){
-
-    clearTimeout(questionTimer); // stop timer when answered
-
-    let userAnswer=parseInt(document.getElementById("answer").value);
-    let message=document.getElementById("message");
-
-    if(userAnswer===currentAnswer){
-
-        message.innerText="BRAVO!";
-        message.className="correct";
-        message.style.display="block";
-
-        if(currentPlayer===1){
-            steps1+=moveAmount;
-            moveRocket("rocket1",steps1);
-        } else {
-            steps2+=moveAmount;
-            moveRocket("rocket2",steps2);
-        }
-
-    } else {
-        message.innerText="OOPS!";
-        message.className="wrong";
-        message.style.display="block";
-    }
-
-    setTimeout(()=>{
-        message.style.display="none";
-        switchPlayer();
-        generateQuestion();
-    },1500);
+function checkAnswer(){
+clearInterval(timer);
+let user = Number(document.getElementById("answer").value);
+if(user===answerValue){
+showMessage("BRAVO!","lime");
+moveRocket(1);
+}else{
+showMessage("OOPS","red");
+}
+document.getElementById("answer").value="";
 }
 
-function switchPlayer(){
-    currentPlayer = currentPlayer===1 ? 2 : 1;
+function moveRocket(stepGain){
+let stepWidth=45;
+if(currentPlayer===1){
+pos1+=stepGain;
+document.getElementById("rocket1").style.transform="translateX("+(pos1*stepWidth)+"px)";
+if(pos1>=steps){ alert("Team 1 Wins!"); location.reload(); }
+}else{
+pos2+=stepGain;
+document.getElementById("rocket2").style.transform="translateX("+(pos2*stepWidth)+"px) translateY(-50px)";
+if(pos2>=steps){ alert("Team 2 Wins!"); location.reload(); }
+}
+currentPlayer=currentPlayer===1?2:1;
+setTimeout(()=>{
+document.getElementById("message").style.display="none";
+generateQuestion();
+},1500);
 }
 
-function moveRocket(id,steps){
-    let pathWidth=document.getElementById("path").offsetWidth;
-    let start=150;
-    let distance=(pathWidth/totalSteps)*steps;
-    document.getElementById(id).style.left=start+distance+"px";
+function showMessage(text,color){
+let msg=document.getElementById("message");
+msg.innerText=text;
+msg.style.color=color;
+msg.style.display="block";
 }
 
-/* Start game */
-window.onload=function(){
-    createCases();
-    generateQuestion();
-};
-                         </script>
+generateQuestion();
+</script>
+
+</body>
+</html>
