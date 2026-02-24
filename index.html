@@ -1,169 +1,190 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mission Mathoria</title>
+<title>Mission Space Math</title>
+
 <style>
 body{
-    font-family: Arial, sans-serif;
-    text-align:center;
-    background: linear-gradient(to bottom, #001f3f, #000814);
+    margin:0;
+    font-family:Arial, sans-serif;
+    overflow:hidden;
+    background: radial-gradient(circle at center, #001d3d 0%, #000814 70%);
     color:white;
+    text-align:center;
 }
 
-h1{margin-top:10px;}
-
-#board{
-    display:flex;
-    justify-content:center;
-    margin:20px;
+h1{
+    margin-top:15px;
 }
 
-.case{
-    width:45px;
-    height:45px;
-    border:2px solid white;
-    margin:3px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:20px;
+#gameArea{
+    position:relative;
+    height:60vh;
+    margin-top:20px;
 }
 
-.start{background:#444;}
-.finish{background:gold; color:black;}
-
-.special{
-    background:#3a0ca3;
+#earth{
+    position:absolute;
+    left:5%;
+    bottom:20px;
+    font-size:90px;
 }
 
-#rockets{
-    font-size:30px;
-    margin:10px;
+#moon{
+    position:absolute;
+    right:5%;
+    top:10px;
+    font-size:110px;
 }
 
-button{
-    padding:10px 20px;
-    font-size:18px;
-    margin:5px;
-    cursor:pointer;
+.rocket{
+    position:absolute;
+    bottom:40px;
+    font-size:45px;
+    transition: all 0.8s ease;
+}
+
+#rocketRed{
+    left:8%;
+}
+
+#rocketBlue{
+    left:8%;
+    bottom:90px;
+}
+
+#message{
+    font-size:50px;
+    font-weight:bold;
+    margin-top:15px;
+    height:60px;
+}
+
+#question{
+    font-size:28px;
+    margin-top:10px;
 }
 
 input{
-    font-size:18px;
+    font-size:22px;
     padding:5px;
-    width:80px;
+    width:90px;
+    text-align:center;
+}
+
+button{
+    font-size:18px;
+    padding:8px 16px;
+    margin:5px;
+    cursor:pointer;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🚀 Mission Mathoria 🌍</h1>
+<h1>🚀 Mission Space Math 🌕</h1>
 
-<div id="board"></div>
+<div id="gameArea">
+    <div id="earth">🌍</div>
+    <div id="moon">🌕</div>
 
-<div id="rockets">
-    🔴 Fusée Rouge: <span id="rpos">0</span> |
-    🔵 Fusée Bleue: <span id="bpos">0</span>
+    <div id="rocketRed" class="rocket">🚀</div>
+    <div id="rocketBlue" class="rocket">🛸</div>
 </div>
 
-<h2 id="question">Clique pour commencer</h2>
+<div id="message"></div>
+
+<div id="question">Press Generate Question</div>
 
 <input type="number" id="answer">
-<button onclick="check()">Valider</button>
-<br><br>
-
-<button onclick="generate('easy')">🟢 Question Facile</button>
-<button onclick="generate('hard')">🔵 Question Difficile</button>
-<button onclick="alien()">👽 Alien Challenge</button>
+<button onclick="check()">Submit</button>
+<br>
+<button onclick="generate()">Generate Question</button>
 
 <script>
-let rpos = 0;
-let bpos = 0;
-let currentTeam = "red";
-let currentAnswer = 0;
 
-const totalCases = 15;
-const specials = [5, 9, 12]; // cases spéciales
+let redPos = 0;
+let bluePos = 0;
+let turn = "red";
+let correctAnswer = 0;
+const maxSteps = 12;
 
-const board = document.getElementById("board");
+function generate(){
 
-for(let i=0;i<=totalCases;i++){
-    let div = document.createElement("div");
-    div.classList.add("case");
-    if(i==0){ div.classList.add("start"); div.innerHTML="🚀"; }
-    if(i==totalCases){ div.classList.add("finish"); div.innerHTML="🌍"; }
-    if(specials.includes(i)){ div.classList.add("special"); div.innerHTML="🌠"; }
-    board.appendChild(div);
-}
+    document.getElementById("message").innerHTML = "";
 
-function generate(type){
-    let q="";
-    if(type=="easy"){
-        let a = Math.floor(Math.random()*9)+1;
-        let b = Math.floor(Math.random()*9);
-        if(Math.random()>0.5){
-            q = a+" + "+b;
-            currentAnswer = a+b;
-        } else {
-            q = a+" - "+b;
-            currentAnswer = a-b;
-        }
+    let a = Math.floor(Math.random()*9)+1;
+    let b = Math.floor(Math.random()*9)+1;
+
+    let type = Math.floor(Math.random()*3);
+
+    if(type===0){
+        correctAnswer = a + b;
+        document.getElementById("question").innerHTML =
+        (turn==="red"?"🔴 ":"🔵 ") + a + " + " + b;
     }
-
-    if(type=="hard"){
-        let a = Math.floor(Math.random()*5)+1;
-        let b = Math.floor(Math.random()*5)+1;
-        q = a+" × "+b;
-        currentAnswer = a*b;
+    else if(type===1){
+        correctAnswer = a - b;
+        document.getElementById("question").innerHTML =
+        (turn==="red"?"🔴 ":"🔵 ") + a + " - " + b;
     }
-
-    document.getElementById("question").innerHTML = 
-        (currentTeam=="red"?"🔴":"🔵") + " " + q;
+    else{
+        a = Math.floor(Math.random()*5)+1;
+        b = Math.floor(Math.random()*5)+1;
+        correctAnswer = a * b;
+        document.getElementById("question").innerHTML =
+        (turn==="red"?"🔴 ":"🔵 ") + a + " × " + b;
+    }
 }
 
 function check(){
-    let val = parseInt(document.getElementById("answer").value);
-    if(val === currentAnswer){
-        if(currentTeam=="red") rpos +=2;
-        else bpos +=2;
-        alert("Bonne réponse ! 🚀");
-    } else {
-        if(currentTeam=="red") rpos -=1;
-        else bpos -=1;
-        alert("Oups ! Mauvaise réponse 😅");
+    let value = parseInt(document.getElementById("answer").value);
+
+    if(value === correctAnswer){
+        if(turn==="red"){
+            redPos++;
+        } else {
+            bluePos++;
+        }
+
+        showMessage("BRAVO! 🎉", "lime");
+    }
+    else{
+        showMessage("OOPS! 😅", "red");
     }
 
-    if(rpos<0) rpos=0;
-    if(bpos<0) bpos=0;
+    moveRockets();
 
-    update();
-
-    if(rpos>=totalCases){
-        alert("🔴 Équipe Rouge gagne !");
+    if(redPos >= maxSteps){
+        alert("🔴 Red Wins!");
         location.reload();
     }
-    if(bpos>=totalCases){
-        alert("🔵 Équipe Bleue gagne !");
+    if(bluePos >= maxSteps){
+        alert("🔵 Blue Wins!");
         location.reload();
     }
 
-    currentTeam = currentTeam=="red"?"blue":"red";
-    document.getElementById("answer").value="";
+    turn = (turn==="red") ? "blue" : "red";
+    document.getElementById("answer").value = "";
 }
 
-function alien(){
-    let choice = confirm("Équipe adverse : OK = difficile, Annuler = facile");
-    if(choice) generate("hard");
-    else generate("easy");
+function moveRockets(){
+    let percentRed = redPos * 6;
+    let percentBlue = bluePos * 6;
+
+    document.getElementById("rocketRed").style.left = (8 + percentRed) + "%";
+    document.getElementById("rocketBlue").style.left = (8 + percentBlue) + "%";
 }
 
-function update(){
-    document.getElementById("rpos").innerText = rpos;
-    document.getElementById("bpos").innerText = bpos;
+function showMessage(text,color){
+    let msg = document.getElementById("message");
+    msg.style.color = color;
+    msg.innerHTML = text;
 }
+
 </script>
 
 </body>
-  </html>
+</html>
