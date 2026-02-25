@@ -14,33 +14,73 @@ color:white;
 overflow:hidden;
 }
 
-h1{
-margin-top:10px;
+h1{margin-top:20px;}
+
+#startScreen{
+margin-top:120px;
+}
+
+input{
+font-size:22px;
+padding:6px;
+margin:8px;
+text-align:center;
+}
+
+button{
+font-size:20px;
+padding:8px 15px;
+margin-top:15px;
+cursor:pointer;
+}
+
+#gameScreen{
+display:none;
+}
+
+#turn{
+font-size:26px;
+margin:5px;
 }
 
 #timer{
 font-size:28px;
-margin:10px;
+margin:5px;
 }
 
 #question{
-font-size:40px;
-margin:20px;
+font-size:42px;
+margin:15px;
 }
 
 #message{
 position:absolute;
-top:40%;
+top:45%;
 left:50%;
 transform:translate(-50%,-50%);
-font-size:90px;
+font-size:80px;
 font-weight:bold;
 display:none;
 }
 
+#earth{
+position:absolute;
+bottom:80px;
+left:8%;
+font-size:70px;
+}
+
+#moon{
+position:absolute;
+top:40px;
+right:8%;
+font-size:120px;
+transition:1s;
+}
+
 #path{
 position:absolute;
-bottom:120px;
+bottom:130px;
 left:50%;
 transform:translateX(-50%);
 display:flex;
@@ -48,53 +88,38 @@ gap:5px;
 }
 
 .step{
-width:40px;
-height:40px;
+width:45px;
+height:45px;
 border:2px solid white;
 border-radius:8px;
 }
 
-#earth{
-position:absolute;
-bottom:60px;
-left:10%;
-font-size:60px;
-}
-
-#moon{
-position:absolute;
-top:50px;
-right:10%;
-font-size:90px;
-}
-
 .rocket{
 position:absolute;
-bottom:125px;
-font-size:40px;
+bottom:140px;
+font-size:45px;
 transition:1s;
 }
 
 #rocket1{ left:10%; }
-#rocket2{ left:10%; transform:translateY(-50px); }
+#rocket2{ left:10%; transform:translateY(-55px); }
 
-input{
-font-size:30px;
-text-align:center;
-width:120px;
-}
-
-button{
-font-size:20px;
-margin-left:10px;
-}
 </style>
 </head>
 
 <body>
 
+<div id="startScreen">
 <h1>🚀 Mission Mathoria 🚀</h1>
+<input id="team1Input" placeholder="Team 1 Name"><br>
+<input id="team2Input" placeholder="Team 2 Name"><br>
+<button onclick="startGame()">Start Game 🚀</button>
+</div>
 
+<div id="gameScreen">
+
+<h1>🚀 Mission Mathoria 🚀</h1>
+<div id="turn"></div>
 <div id="timer">⏳ 20</div>
 <div id="question"></div>
 
@@ -105,13 +130,15 @@ margin-left:10px;
 
 <div id="earth">🌍</div>
 <div id="moon">🌕</div>
-
 <div id="path"></div>
 
 <div id="rocket1" class="rocket">🚀</div>
 <div id="rocket2" class="rocket">🚀</div>
 
+</div>
+
 <script>
+
 let steps = 15;
 let currentPlayer = 1;
 let pos1 = 0;
@@ -119,12 +146,40 @@ let pos2 = 0;
 let answerValue = 0;
 let timer;
 let timeLeft = 20;
+let team1 = "Team 1";
+let team2 = "Team 2";
+let moonSize = 120;
+let stepReward = 1;
 
+/* Sounds */
+const bravoSound = new Audio("https://actions.google.com/sounds/v1/crowds/applause.ogg");
+const oopsSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+const rocketSound = new Audio("https://actions.google.com/sounds/v1/science_fiction/rocket_launch.ogg");
+
+function startGame(){
+team1 = document.getElementById("team1Input").value || "Team 1";
+team2 = document.getElementById("team2Input").value || "Team 2";
+
+document.getElementById("startScreen").style.display="none";
+document.getElementById("gameScreen").style.display="block";
+
+createPath();
+updateTurn();
+generateQuestion();
+}
+
+function createPath(){
 const path = document.getElementById("path");
 for(let i=0;i<steps;i++){
 let box=document.createElement("div");
 box.className="step";
 path.appendChild(box);
+}
+}
+
+function updateTurn(){
+document.getElementById("turn").innerText =
+currentPlayer===1 ? "🔵 "+team1+"'s Turn" : "🟣 "+team2+"'s Turn";
 }
 
 function startTimer(){
@@ -135,59 +190,88 @@ timeLeft--;
 document.getElementById("timer").innerText="⏳ "+timeLeft;
 if(timeLeft<=0){
 clearInterval(timer);
-showMessage("OOPS","red");
+showMessage("OH NO, TRY AGAIN!","red");
+oopsSound.play();
+switchTurn();
 }
 },1000);
 }
 
 function generateQuestion(){
+
 let easy = Math.random()<0.7;
 
 if(easy){
+stepReward=1;
 let a = Math.floor(Math.random()*9)+1;
 let b = Math.floor(Math.random()*9)+1;
 let op = ["+","-","×"][Math.floor(Math.random()*3)];
-if(op==="×"){ b=Math.floor(Math.random()*5)+1; }
-answerValue = eval(op==="×"? a*b : op==="+"? a+b : a-b);
+
+if(op==="×"){
+b=Math.floor(Math.random()*5)+1;
+answerValue=a*b;
+}else if(op==="+"){
+answerValue=a+b;
+}else{
+answerValue=a-b;
+}
+
 document.getElementById("question").innerText=a+" "+op+" "+b;
 }else{
+stepReward=2;
 let a=Math.floor(Math.random()*9)+1;
 let b=Math.floor(Math.random()*9)+1;
 let c=Math.floor(Math.random()*9)+1;
 answerValue=a+b+c;
 document.getElementById("question").innerText=a+" + "+b+" + "+c;
 }
+
 startTimer();
 }
 
 function checkAnswer(){
 clearInterval(timer);
 let user = Number(document.getElementById("answer").value);
+
 if(user===answerValue){
-showMessage("BRAVO!","lime");
-moveRocket(1);
+showMessage("BRAVO!!!","lime");
+bravoSound.play();
+rocketSound.play();
+moveRocket(stepReward);
+moonSize+=10;
+document.getElementById("moon").style.fontSize=moonSize+"px";
 }else{
-showMessage("OOPS","red");
+showMessage("OH NO, TRY AGAIN!","red");
+oopsSound.play();
+switchTurn();
 }
+
 document.getElementById("answer").value="";
 }
 
 function moveRocket(stepGain){
-let stepWidth=45;
+
+let stepWidth=50;
+
 if(currentPlayer===1){
 pos1+=stepGain;
 document.getElementById("rocket1").style.transform="translateX("+(pos1*stepWidth)+"px)";
-if(pos1>=steps){ alert("Team 1 Wins!"); location.reload(); }
+if(pos1>=steps){ alert(team1+" Wins!"); location.reload(); }
 }else{
 pos2+=stepGain;
-document.getElementById("rocket2").style.transform="translateX("+(pos2*stepWidth)+"px) translateY(-50px)";
-if(pos2>=steps){ alert("Team 2 Wins!"); location.reload(); }
+document.getElementById("rocket2").style.transform="translateX("+(pos2*stepWidth)+"px) translateY(-55px)";
+if(pos2>=steps){ alert(team2+" Wins!"); location.reload(); }
 }
-currentPlayer=currentPlayer===1?2:1;
+
 setTimeout(()=>{
-document.getElementById("message").style.display="none";
-generateQuestion();
+switchTurn();
 },1500);
+}
+
+function switchTurn(){
+currentPlayer=currentPlayer===1?2:1;
+updateTurn();
+generateQuestion();
 }
 
 function showMessage(text,color){
@@ -195,9 +279,12 @@ let msg=document.getElementById("message");
 msg.innerText=text;
 msg.style.color=color;
 msg.style.display="block";
+
+setTimeout(()=>{
+msg.style.display="none";
+},1200);
 }
 
-generateQuestion();
 </script>
 
 </body>
